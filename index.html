@@ -1,796 +1,680 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nyanpasu~ Portfolio Episode Picker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Nyanpasu· 手作り日記 · Non Non Biyori</title>
+    <!-- Tailwind + Google Fonts + rustic custom styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Klee+One:wght@400;600&family=Zen+Kurenaido&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; user-select: none; }
         body {
-            background-image: url('https://images.unsplash.com/photo-1593959828280-f04179313277?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-            font-family: 'Yomogi', cursive;
-            color: #4a3e3b;
-        }
-        
-        .content-panel {
-            background-color: rgba(253, 250, 240, 0.95);
-            border: 1px solid #dcd1b8;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.3);
-            padding: 2rem;
+            background: #e2d2a8;
+            background-image: radial-gradient(circle at 15% 30%, rgba(150, 115, 60, 0.12) 2px, transparent 2px),
+                              radial-gradient(circle at 80% 70%, rgba(100, 70, 30, 0.1) 1.5px, transparent 1.5px),
+                              repeating-linear-gradient(45deg, rgba(130, 90, 40, 0.03) 0px, rgba(130, 90, 40, 0.03) 2px, transparent 2px, transparent 8px);
+            background-size: 28px 28px, 34px 34px, 16px 16px;
+            min-height: 100vh;
+            font-family: 'Klee One', cursive;
+            color: #2c2418;
             position: relative;
-            animation: fadeIn 0.5s ease-out;
+            overflow-x: hidden;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .title-text {
-            color: #6d5d4d;
-            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.7);
-            border-bottom: 2px dashed #bcae99;
-            padding-bottom: 0.75rem;
-        }
-        
-        .themed-button {
-            background-color: #8c6d52;
-            color: white;
-            border: 2px solid #594639;
-            border-radius: 12px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 0 #594639;
-            font-weight: bold;
-            position: relative;
-            top: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .themed-button:hover:not(:disabled) {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #594639;
-        }
-        
-        .themed-button:disabled {
-            background-color: #b0a191;
-            box-shadow: 0 4px 0 #817468;
-            cursor: not-allowed;
+        /* hand-drawn sun & clouds */
+        .handmade-sun {
+            position: fixed;
+            top: 25px;
+            right: 30px;
+            width: 95px;
+            height: 95px;
+            background: radial-gradient(circle, #f9e07c, #f3bc5c);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px #ffe5a3, 0 0 0 8px rgba(255,225,140,0.3);
+            z-index: 0;
             opacity: 0.7;
+            pointer-events: none;
         }
-        
-        .themed-button.reset {
-            background-color: #d1a3a3;
-            border-color: #a17c7c;
-            box-shadow: 0 4px 0 #a17c7c;
-        }
-        
-        .themed-button.reset:hover:not(:disabled) {
-            box-shadow: 0 2px 0 #a17c7c;
-        }
-        
-        .themed-button.surprise {
-            background-color: #8fb9a8;
-            border-color: #5d7e72;
-            box-shadow: 0 4px 0 #5d7e72;
-        }
-        
-        .themed-button.surprise:hover:not(:disabled) {
-            box-shadow: 0 2px 0 #5d7e72;
-        }
-
-        .selected-episode-card {
-            background: linear-gradient(135deg, #f5f0e0 0%, #e9e4d4 100%);
-            border: 2px dashed #bcae99;
-            border-radius: 10px;
-            position: relative;
-            animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-        
-        .list-item {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            padding: 0.75rem 1rem;
-            border-left: 5px solid #b3c9a3;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            animation: fadeInItem 0.3s ease-out;
-        }
-        
-        @keyframes fadeInItem {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* IMPROVEMENT: Flash animation on toggle */
-        @keyframes flash {
-            0% { background-color: rgba(138, 155, 129, 0.3); }
-            100% { background-color: rgba(255, 255, 255, 0.6); }
-        }
-        .flash-animation {
-            animation: flash 0.5s ease-out;
-        }
-        
-        .list-item:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateX(5px);
-            border-left-color: #8a9b81;
-        }
-        
-        .list-item.watched {
-            border-left-color: #d4c5a0;
+        .handmade-sun::after {
+            content: '☀️';
+            position: absolute;
+            font-size: 44px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             opacity: 0.9;
         }
-        
-        .list-item-empty {
-            text-align: center;
-            padding: 1rem;
-            color: #8c7a6b;
-            font-style: italic;
-            opacity: 0.8;
-            border: 2px dashed #e0d8c7;
-        }
-
-        .character-deco {
-            position: absolute;
-            z-index: 10;
+        .cloud {
+            position: fixed;
+            background: rgba(255, 250, 225, 0.85);
+            border-radius: 80% 20% 70% 30% / 60% 50% 50% 40%;
+            filter: blur(4px);
+            box-shadow: 10px 12px 20px rgba(0,0,0,0.05);
             pointer-events: none;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+            z-index: 0;
         }
-        
-        .progress-bar-container {
-            background-color: rgba(0,0,0,0.07);
-            border-radius: 10px;
-            overflow: hidden;
-            height: 32px;
+        .grass-field {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: repeating-linear-gradient(transparent 0px, transparent 28px, #8baa6e20 28px, #8baa6e30 30px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .grass-field::before {
+            content: '🌾 🌻 🌾 🍃 🌾';
+            position: absolute;
+            bottom: 8px;
+            left: 5%;
+            font-size: 28px;
+            letter-spacing: 20px;
+            opacity: 0.35;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .main-board {
             position: relative;
-        }
-        
-        .progress-bar-fill {
-            background: linear-gradient(90deg, #8a9b81 0%, #a3b899 100%);
-            color: white;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 0.75rem;
-            border-radius: 10px;
-            transition: width 0.5s ease-out;
-            white-space: nowrap;
-            font-weight: bold;
-        }
-        
-        .filter-button {
-            background-color: rgba(255,255,255,0.6);
-            border: 1px solid #dcd1b8;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .filter-button:hover {
-            background-color: rgba(255,255,255,0.8);
-            transform: translateY(-1px);
-        }
-        
-        .filter-button.active {
-            background-color: #8c6d52;
-            color: white;
-            border-color: #594639;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stats-card {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            border: 1px solid #dcd1b8;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .tooltip {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            pointer-events: none;
             z-index: 20;
-            opacity: 0;
-            transition: opacity 0.2s;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1rem 1rem 3rem;
         }
-        
-        .tooltip.show {
-            opacity: 1;
+        /* character stickers - with real PNG images */
+        .character-sticker {
+            position: fixed;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), filter 0.2s;
+            filter: drop-shadow(4px 8px 10px rgba(0,0,0,0.12));
+            z-index: 30;
+            width: 95px;
+            background: #fffcf0;
+            border-radius: 45% 55% 40% 60% / 55% 45% 55% 45%;
+            border: 2.5px solid #efdba8;
+            padding: 8px 6px 6px;
+            text-align: center;
+            backdrop-filter: blur(1px);
+            transform-origin: center;
         }
-        
-        .episode-badge {
-            display: inline-block;
-            padding: 0.125rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
+        .character-sticker:hover {
+            transform: scale(1.07) rotate(2deg);
+            filter: drop-shadow(8px 14px 14px rgba(0,0,0,0.18));
+            z-index: 45;
+        }
+        .sticker-renge { top: 8%; left: 1%; transform: rotate(-5deg); }
+        .sticker-komari { bottom: 15%; right: 2%; transform: rotate(6deg); }
+        .sticker-natsumi { top: 45%; right: 0%; transform: rotate(9deg); }
+        .sticker-hotaru { bottom: 28%; left: 0%; transform: rotate(-4deg); }
+        @media (max-width: 860px) {
+            .character-sticker { width: 78px; padding: 6px 4px; }
+            .sticker-renge { top: 6%; left: -5px; }
+            .sticker-komari { bottom: 12%; right: -5px; }
+            .sticker-natsumi { top: 48%; right: -8px; }
+            .sticker-hotaru { bottom: 32%; left: -5px; }
+        }
+        @media (max-width: 640px) {
+            .character-sticker { width: 68px; }
+            .sticker-avatar-img { width: 52px; height: 52px; }
+        }
+        .sticker-avatar-img {
+            width: 68px;
+            height: 68px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            display: block;
+            background: #f8eedb;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .sticker-name {
+            font-size: 0.7rem;
             font-weight: bold;
-            margin-left: 0.5rem;
-            vertical-align: middle;
+            background: #fbe5bf;
+            display: inline-block;
+            padding: 0 6px;
+            border-radius: 30px;
+            margin-top: 3px;
         }
-        
-        .badge-s1 { background-color: #ffd4a3; color: #8b5a00; }
-        .badge-repeat { background-color: #a3d4ff; color: #003d8b; }
-        .badge-nonstop { background-color: #ffa3d4; color: #8b003d; }
-        .badge-movie { background-color: #d4a3ff; color: #5a008b; }
-        
-        @media (max-width: 768px) {
-            .content-panel {
-                padding: 1.5rem;
-            }
-            .character-deco {
-                display: none;
-            }
+        .music-icon-overlay {
+            position: absolute;
+            bottom: -6px;
+            right: -4px;
+            background: #f9e0b0;
+            border-radius: 30px;
+            padding: 2px 6px;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            pointer-events: none;
+            font-weight: bold;
+        }
+        .speech-bubble-sticker {
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fffae9;
+            border: 1.8px solid #cdaf7a;
+            border-radius: 28px 28px 28px 8px;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #5a3f1f;
+            white-space: nowrap;
+            box-shadow: 5px 5px 12px rgba(0,0,0,0.08);
+            z-index: 55;
+            font-family: 'Zen Kurenaido', monospace;
+            pointer-events: none;
+            animation: bubbleFade 0.18s ease-out;
+        }
+        @keyframes bubbleFade {
+            from { opacity: 0; transform: translateX(-50%) translateY(6px);}
+            to { opacity: 1; transform: translateX(-50%) translateY(0);}
+        }
+        /* diary card tape & pins */
+        .tape-strip {
+            background: #eedfa8c9;
+            height: 20px;
+            width: 110px;
+            border-radius: 3px 12px 2px 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transform: rotate(-1deg);
+        }
+        .pin {
+            position: absolute;
+            top: -10px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 35%, #dbb47a, #b47c44);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 12;
+        }
+        .pin-left { left: 20px; }
+        .pin-right { right: 20px; }
+        /* episode list handmade style */
+        .ep-list-scroll {
+            max-height: 280px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        .ep-item {
+            transition: all 0.12s;
+            border-bottom: 1px dashed #e2cf9e;
+        }
+        .ep-item:hover {
+            background: #fff3e0;
+            transform: translateX(5px);
+        }
+        .watched-ep {
+            opacity: 0.65;
+            text-decoration: line-through;
+            text-decoration-thickness: 1px;
+            text-decoration-color: #b49162;
+        }
+        .progress-fill-hand {
+            background: repeating-linear-gradient(90deg, #7c9f62, #7c9f62 14px, #9bc27a 14px, #9bc27a 28px);
+            height: 100%;
+            border-radius: 20px;
+        }
+        .btn-hand {
+            transition: all 0.1s linear;
+        }
+        .btn-hand:active { transform: translateY(2px); }
+        @keyframes spinny {
+            to { transform: rotate(360deg); }
+        }
+        .picking-spin { animation: spinny 0.5s linear infinite; display: inline-block; }
+        .wildflower {
+            position: fixed;
+            font-size: 26px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        .music-note {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(250, 240, 200, 0.7);
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+            z-index: 45;
+            pointer-events: none;
+            font-family: monospace;
         }
     </style>
 </head>
+<body>
 
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div id="root"></div>
+<div class="handmade-sun"></div>
+<div class="cloud" style="top: 12%; left: -20px; width: 180px; height: 80px;"></div>
+<div class="cloud" style="bottom: 18%; right: -25px; width: 150px; height: 65px;"></div>
+<div class="grass-field"></div>
+<div class="wildflower" style="bottom: 12%; left: 8%;">🌼</div>
+<div class="wildflower" style="top: 70%; right: 12%;">🌸</div>
+<div class="wildflower" style="top: 22%; left: 88%;">🌻</div>
+<div class="music-note" id="musicStatusDisplay">♪ bgm ready ♪</div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo, useCallback, useRef } = React;
+<div id="root"></div>
 
-        // ========================================================================
-        // Data & Constants
-        // ========================================================================
-        const EPISODES = [
-            // ... (Same episode data as before)
-            { id: 'S1E01', season: 'S1', episode: 1, title: 'We Became Transfer Students', tags: ['introduction', 'school'] },
-            { id: 'S1E02', season: 'S1', episode: 2, title: 'We Went to a Candy Store', tags: ['dagashi', 'friendship'] },
-            { id: 'S1E03', season: 'S1', episode: 3, title: 'I Ran Away From Home With My Sister', tags: ['family', 'adventure'] },
-            { id: 'S1E04', season: 'S1', episode: 4, title: 'Summer Vacation Started', tags: ['summer', 'vacation'] },
-            { id: 'S1E05', season: 'S1', episode: 5, title: 'I Pretended I Forgot My Swimsuit', tags: ['summer', 'pool'] },
-            { id: 'S1E06', season: 'S1', episode: 6, title: 'I Became a Ghost and Tried Hard', tags: ['festival', 'courage'] },
-            { id: 'S1E07', season: 'S1', episode: 7, title: 'Our Rice Crackers Turned into Curry', tags: ['cooking', 'friendship'] },
-            { id: 'S1E08', season: 'S1', episode: 8, title: 'We Cooked Rice at School', tags: ['school', 'cooking'] },
-            { id: 'S1E09', season: 'S1', episode: 9, title: 'We Had a Culture Festival', tags: ['festival', 'school'] },
-            { id: 'S1E10', season: 'S1', episode: 10, title: 'We Watched the First Sunrise of the Year', tags: ['new year', 'tradition'] },
-            { id: 'S1E11', season: 'S1', episode: 11, title: 'We Made Snow Houses', tags: ['winter', 'play'] },
-            { id: 'S1E12', season: 'S1', episode: 12, title: 'Spring Came Again', tags: ['spring', 'finale'] },
-            { id: 'S2E01', season: 'Repeat', episode: 1, title: 'I Became a First Grader', tags: ['school', 'growth'] },
-            { id: 'S2E02', season: 'Repeat', episode: 2, title: 'We Went to See the Stars', tags: ['night', 'astronomy'] },
-            { id: 'S2E03', season: 'Repeat', episode: 3, title: 'We Got Excited During the Holidays', tags: ['vacation', 'fun'] },
-            { id: 'S2E04', season: 'Repeat', episode: 4, title: 'I Made a Teru-teru Bozu', tags: ['rain', 'tradition'] },
-            { id: 'S2E05', season: 'Repeat', episode: 5, title: 'We Ate Okonomiyaki', tags: ['cooking', 'food'] },
-            { id: 'S2E06', season: 'Repeat', episode: 6, title: 'We Made Friends With a Firefly', tags: ['summer', 'nature'] },
-            { id: 'S2E07', season: 'Repeat', episode: 7, title: 'We Bravely Dove In', tags: ['summer', 'courage'] },
-            { id: 'S2E08', season: 'Repeat', episode: 8, title: 'I Took Care of the Babies', tags: ['responsibility', 'care'] },
-            { id: 'S2E09', season: 'Repeat', episode: 9, title: 'We Looked at the Moon Together', tags: ['night', 'moon viewing'] },
-            { id: 'S2E10', season: 'Repeat', episode: 10, title: 'We Practiced Really Hard', tags: ['effort', 'school'] },
-            { id: 'S2E11', season: 'Repeat', episode: 11, title: 'I Acted Spoiled', tags: ['family', 'emotions'] },
-            { id: 'S2E12', season: 'Repeat', episode: 12, title: 'A Year Passed', tags: ['time', 'finale'] },
-            { id: 'S3E01', season: 'Nonstop', episode: 1, title: 'I Played the Recorder', tags: ['music', 'school'] },
-            { id: 'S3E02', season: 'Nonstop', episode: 2, title: 'Hotaru Was Grown-Up', tags: ['growth', 'maturity'] },
-            { id: 'S3E03', season: 'Nonstop', episode: 3, title: 'A Past Self Was Revived', tags: ['memories', 'nostalgia'] },
-            { id: 'S3E04', season: 'Nonstop', episode: 4, title: 'I Made a Watermelon Monster', tags: ['summer', 'creativity'] },
-            { id: 'S3E05', season: 'Nonstop', episode: 5, title: 'I Cooked Something Amazing', tags: ['cooking', 'achievement'] },
-            { id: 'S3E06', season: 'Nonstop', episode: 6, title: 'We All Went Camping', tags: ['camping', 'adventure'] },
-            { id: 'S3E07', season: 'Nonstop', episode: 7, title: 'The Cicadas Cried in the Rain', tags: ['summer', 'rain'] },
-            { id: 'S3E08', season: 'Nonstop', episode: 8, title: 'My Big Sister Did a Great Job', tags: ['family', 'pride'] },
-            { id: 'S3E09', season: 'Nonstop', episode: 9, 'title': 'We Made Delicious Food', tags: ['cooking', 'teamwork'] },
-            { id: 'S3E10', season: 'Nonstop', episode: 10, title: 'The Cold Wind Blew', tags: ['winter', 'weather'] },
-            { id: 'S3E11', season: 'Nonstop', episode: 11, title: 'I Was Fooled By Everyone', tags: ['pranks', 'fun'] },
-            { id: 'S3E12', season: 'Nonstop', episode: 12, title: 'The Journey Was Fun', tags: ['journey', 'finale'] },
-            { id: 'MOVIE', season: 'Movie', episode: null, title: 'Vacation', tags: ['movie', 'special'] }
-        ];
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
-        // IMPROVEMENT: Centralized data for seasons for easier maintenance and consistency
-        const SEASON_DATA = {
-            'All': { name: 'All', badgeClass: '' },
-            'S1': { name: 'S1', badgeClass: 'badge-s1' },
-            'Repeat': { name: 'Repeat', badgeClass: 'badge-repeat' },
-            'Nonstop': { name: 'Nonstop', badgeClass: 'badge-nonstop' },
-            'Movie': { name: 'Movie', badgeClass: 'badge-movie' }
+// ---------- EPISODE DATA (full) ----------
+const EPISODES = [
+    { id:'S1E01', season:'S1', episode:1, title:'We Became Transfer Students', tags:['school','first day'] },
+    { id:'S1E02', season:'S1', episode:2, title:'We Went to a Candy Store', tags:['dagashi','snacks'] },
+    { id:'S1E03', season:'S1', episode:3, title:'I Ran Away From Home With My Sister', tags:['family','adventure'] },
+    { id:'S1E04', season:'S1', episode:4, title:'Summer Vacation Started', tags:['summer','fireflies'] },
+    { id:'S1E05', season:'S1', episode:5, title:'I Pretended I Forgot My Swimsuit', tags:['pool','summer'] },
+    { id:'S1E06', season:'S1', episode:6, title:'I Became a Ghost and Tried Hard', tags:['festival','courage'] },
+    { id:'S1E07', season:'S1', episode:7, title:'Our Rice Crackers Turned into Curry', tags:['cooking','friends'] },
+    { id:'S1E08', season:'S1', episode:8, title:'We Cooked Rice at School', tags:['school','cooking'] },
+    { id:'S1E09', season:'S1', episode:9, title:'We Had a Culture Festival', tags:['festival','school'] },
+    { id:'S1E10', season:'S1', episode:10, title:'We Watched the First Sunrise', tags:['new year','tradition'] },
+    { id:'S1E11', season:'S1', episode:11, title:'We Made Snow Houses', tags:['winter','snow'] },
+    { id:'S1E12', season:'S1', episode:12, title:'Spring Came Again', tags:['spring','finale'] },
+    { id:'S2E01', season:'Repeat', episode:1, title:'I Became a First Grader', tags:['growth','school'] },
+    { id:'S2E02', season:'Repeat', episode:2, title:'We Went to See the Stars', tags:['stars','night'] },
+    { id:'S2E03', season:'Repeat', episode:3, title:'We Got Excited During the Holidays', tags:['vacation','fun'] },
+    { id:'S2E04', season:'Repeat', episode:4, title:'I Made a Teru-teru Bozu', tags:['rain','crafts'] },
+    { id:'S2E05', season:'Repeat', episode:5, title:'We Ate Okonomiyaki', tags:['cooking','food'] },
+    { id:'S2E06', season:'Repeat', episode:6, title:'We Made Friends With a Firefly', tags:['summer','nature'] },
+    { id:'S2E07', season:'Repeat', episode:7, title:'We Bravely Dove In', tags:['river','courage'] },
+    { id:'S2E08', season:'Repeat', episode:8, title:'I Took Care of the Babies', tags:['family','caring'] },
+    { id:'S2E09', season:'Repeat', episode:9, title:'We Looked at the Moon Together', tags:['moon','night'] },
+    { id:'S2E10', season:'Repeat', episode:10, title:'We Practiced Really Hard', tags:['effort','school'] },
+    { id:'S2E11', season:'Repeat', episode:11, title:'I Acted Spoiled', tags:['family','emotions'] },
+    { id:'S2E12', season:'Repeat', episode:12, title:'A Year Passed', tags:['time','finale'] },
+    { id:'S3E01', season:'Nonstop', episode:1, title:'I Played the Recorder', tags:['music','school'] },
+    { id:'S3E02', season:'Nonstop', episode:2, title:'Hotaru Was Grown-Up', tags:['growth','maturity'] },
+    { id:'S3E03', season:'Nonstop', episode:3, title:'A Past Self Was Revived', tags:['memories','nostalgia'] },
+    { id:'S3E04', season:'Nonstop', episode:4, title:'I Made a Watermelon Monster', tags:['summer','creativity'] },
+    { id:'S3E05', season:'Nonstop', episode:5, title:'I Cooked Something Amazing', tags:['cooking','achievement'] },
+    { id:'S3E06', season:'Nonstop', episode:6, title:'We All Went Camping', tags:['camping','outdoors'] },
+    { id:'S3E07', season:'Nonstop', episode:7, title:'The Cicadas Cried in the Rain', tags:['rain','summer'] },
+    { id:'S3E08', season:'Nonstop', episode:8, title:'My Big Sister Did a Great Job', tags:['family','pride'] },
+    { id:'S3E09', season:'Nonstop', episode:9, title:'We Made Delicious Food', tags:['cooking','teamwork'] },
+    { id:'S3E10', season:'Nonstop', episode:10, title:'The Cold Wind Blew', tags:['winter','weather'] },
+    { id:'S3E11', season:'Nonstop', episode:11, title:'I Was Fooled By Everyone', tags:['pranks','fun'] },
+    { id:'S3E12', season:'Nonstop', episode:12, title:'The Journey Was Fun', tags:['journey','finale'] },
+    { id:'MOVIE', season:'Movie', episode:null, title:'Vacation', tags:['movie','special','summer'] },
+];
+
+const SEASON_META = {
+    S1: { label:'Season 1', short:'S1', emoji:'🌾' },
+    Repeat: { label:'Repeat', short:'Repeat', emoji:'🍃' },
+    Nonstop: { label:'Nonstop', short:'Nonstop', emoji:'✨' },
+    Movie: { label:'Movie', short:'Movie', emoji:'🎞️' },
+};
+const SEASON_FILTERS = ['All', 'S1', 'Repeat', 'Nonstop', 'Movie'];
+function epDisplay(ep) { return ep.episode ? `${ep.season} #${ep.episode}` : ep.season; }
+
+// ---------- CHARACTER STICKERS with REAL PNG images ----------
+// Place your PNG files inside "/images/" folder: renge.png, komari.png, natsumi.png, hotaru.png
+// If images are missing, they will show a fallback text, but you can replace paths.
+const STICKER_CHARS = [
+    { id: 'renge', name: 'Renge', imgSrc: './images/renge.png', fallbackEmoji: '👧🌾', quotes: ['Nyanpasu~ ☆', 'The sky is so blue today', 'I found a big crayon!', 'Rice paddies are mysterious', 'Let’s watch the sunset'] },
+    { id: 'komari', name: 'Komari', imgSrc: './images/komari.png', fallbackEmoji: '😊🌸', quotes: ['Ehehe... senpai!', 'I’m not scared', 'Don’t tease me', 'So embarrassing...', 'Let’s all be friends'] },
+    { id: 'natsumi', name: 'Natsumi', imgSrc: './images/natsumi.png', fallbackEmoji: '🏃‍♀️🍙', quotes: ['Let’s play outside!', 'Catch me if you can!', 'I’m super hungry', 'That was awesome!', 'Wahaha!'] },
+    { id: 'hotaru', name: 'Hotaru', imgSrc: './images/hotaru.png', fallbackEmoji: '📚✨', quotes: ['Senpai is so cool', 'I brought homemade lunch', 'The countryside is beautiful', 'I’ll do my best!', 'Nyanpasu~ whisper'] }
+];
+
+// Music controller: uses local file "bgm.mp3" in same directory. Renge toggles.
+function useBackgroundMusic() {
+    const audioRef = useRef(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        // create audio element with bgm.mp3
+        const audio = new Audio('./bgm.mp3');
+        audio.loop = true;
+        audio.preload = 'auto';
+        audioRef.current = audio;
+
+        const handleCanPlay = () => setReady(true);
+        audio.addEventListener('canplaythrough', handleCanPlay);
+        // autoplay attempt (muted first to bypass policy, then unmute on user gesture)
+        audio.muted = true;
+        audio.play().then(() => {
+            // after first successful muted play, we keep muted until first Renge click.
+            // we'll unmute when user clicks on Renge to start actual music.
+            audio.muted = true; // still muted, we'll unmute on first interaction
+            setIsPlaying(false);
+        }).catch(e => console.log("autoplay blocked, will start on renge click"));
+
+        return () => {
+            audio.pause();
+            audio.src = '';
+            audio.removeEventListener('canplaythrough', handleCanPlay);
         };
-        const SEASONS = Object.keys(SEASON_DATA);
-        
-        // ========================================================================
-        // Custom Hook: useEpisodeTracker
-        // ========================================================================
-        function useEpisodeTracker() {
-            const [watchedIds, setWatchedIds] = useState(() => new Set(JSON.parse(localStorage.getItem('watchedEpisodes') || '[]')));
-            const [randomEpisode, setRandomEpisode] = useState(null);
-            const [filter, setFilter] = useState('All');
-            const [searchQuery, setSearchQuery] = useState('');
-            const [showStats, setShowStats] = useState(false);
-            const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('episodeHistory') || '[]'));
-            const [toggledItemId, setToggledItemId] = useState(null); // For animation
+    }, []);
 
-            useEffect(() => {
-                localStorage.setItem('watchedEpisodes', JSON.stringify(Array.from(watchedIds)));
-            }, [watchedIds]);
+    const startMusic = useCallback(() => {
+        if (!audioRef.current) return;
+        audioRef.current.muted = false;
+        audioRef.current.play().then(() => {
+            setIsPlaying(true);
+        }).catch(e => console.log("play failed", e));
+    }, []);
 
-            useEffect(() => {
-                localStorage.setItem('episodeHistory', JSON.stringify(history));
-            }, [history]);
-            
-            const addHistory = (action, episodeId) => {
-                setHistory(prev => [{ episodeId, timestamp: new Date().toISOString(), action }, ...prev].slice(0, 50));
-            };
-
-            const { watchedEpisodes, unwatchedEpisodes } = useMemo(() => {
-                const watched = [];
-                const unwatched = [];
-                EPISODES.forEach(ep => {
-                    if (watchedIds.has(ep.id)) {
-                        watched.push(ep);
-                    } else {
-                        unwatched.push(ep);
-                    }
-                });
-                return { watchedEpisodes: watched, unwatchedEpisodes: unwatched };
-            }, [watchedIds]);
-            
-            const filterAndSearch = useCallback((episodes) => {
-                let filtered = filter === 'All' ? episodes : episodes.filter(ep => ep.season === filter);
-                
-                if (searchQuery) {
-                    const query = searchQuery.toLowerCase();
-                    filtered = filtered.filter(ep => 
-                        ep.title.toLowerCase().includes(query) ||
-                        ep.tags.some(tag => tag.toLowerCase().includes(query))
-                    );
-                }
-                return filtered;
-            }, [filter, searchQuery]);
-
-            const filteredUnwatched = useMemo(() => filterAndSearch(unwatchedEpisodes), [unwatchedEpisodes, filterAndSearch]);
-            const filteredWatched = useMemo(() => filterAndSearch(watchedEpisodes), [watchedEpisodes, filterAndSearch]);
-            
-            const pickRandomEpisode = useCallback((fromPool) => {
-                if (fromPool.length === 0) {
-                    alert('Nyanpasu! No episodes in this category to pick from.');
-                    return;
-                }
-                const randomIndex = Math.floor(Math.random() * fromPool.length);
-                const selected = fromPool[randomIndex];
-                setRandomEpisode(selected);
-                addHistory('picked', selected.id);
-            }, []);
-
-            const toggleWatchedStatus = useCallback((episodeId) => {
-                setToggledItemId(episodeId); // Trigger flash animation
-                setTimeout(() => setToggledItemId(null), 500);
-
-                setWatchedIds(prevIds => {
-                    const newIds = new Set(prevIds);
-                    const wasWatched = newIds.has(episodeId);
-                    
-                    if (wasWatched) {
-                        newIds.delete(episodeId);
-                        addHistory('unmarked', episodeId);
-                    } else {
-                        newIds.add(episodeId);
-                        addHistory('marked', episodeId);
-                    }
-                    return newIds;
-                });
-                
-                if (randomEpisode?.id === episodeId) {
-                    setRandomEpisode(null);
-                }
-            }, [randomEpisode]);
-
-            const markAsWatched = useCallback(() => {
-                if (!randomEpisode) return;
-                toggleWatchedStatus(randomEpisode.id);
-                setRandomEpisode(null);
-            }, [randomEpisode, toggleWatchedStatus]);
-
-            const resetProgress = useCallback(() => {
-                if (confirm("Are you sure you want to start a new school year? This will reset all your watched episodes and history.")) {
-                    setWatchedIds(new Set());
-                    setRandomEpisode(null);
-                    setFilter('All');
-                    setSearchQuery('');
-                    setHistory([]);
-                }
-            }, []);
-            
-            const stats = useMemo(() => { /* ... (same stats logic) ... */
-                const seasonStats = {};
-                SEASONS.slice(1).forEach(season => {
-                    const total = EPISODES.filter(ep => ep.season === season).length;
-                    const watched = watchedEpisodes.filter(ep => ep.season === season).length;
-                    seasonStats[season] = { total, watched, percentage: total > 0 ? (watched / total) * 100 : 0 };
-                });
-                
-                return {
-                    total: EPISODES.length,
-                    watched: watchedEpisodes.length,
-                    percentage: EPISODES.length > 0 ? (watchedEpisodes.length / EPISODES.length) * 100 : 0,
-                    bySeasons: seasonStats,
-                    recentHistory: history.slice(0, 5)
-                };
-            }, [watchedEpisodes, history]);
-
-            return {
-                watchedEpisodes, unwatchedEpisodes,
-                filteredWatched, filteredUnwatched,
-                totalEpisodeCount: EPISODES.length,
-                randomEpisode, pickRandomEpisode,
-                markAsWatched, toggleWatchedStatus, resetProgress,
-                filter, setFilter, searchQuery, setSearchQuery,
-                showStats, setShowStats, stats,
-                toggledItemId
-            };
+    const togglePlayPause = useCallback(() => {
+        if (!audioRef.current) return;
+        // if audio not started or still muted, force start
+        if (audioRef.current.paused || audioRef.current.muted) {
+            audioRef.current.muted = false;
+            audioRef.current.play().then(() => setIsPlaying(true)).catch(e=>console.log);
+        } else {
+            // pause
+            audioRef.current.pause();
+            setIsPlaying(false);
         }
+    }, []);
+
+    const resumeIfNeeded = useCallback(() => {
+        if (audioRef.current && audioRef.current.paused && !audioRef.current.muted) {
+            audioRef.current.play().catch(e=>console.log);
+            setIsPlaying(true);
+        }
+    }, []);
+
+    return { audioRef, isPlaying, startMusic, togglePlayPause, resumeIfNeeded };
+}
+
+// Character stickers component (floating images)
+function FloatingCharacters({ onRengeMusicToggle, musicPlaying }) {
+    const [activeQuote, setActiveQuote] = useState(null);
+    const [activeCharId, setActiveCharId] = useState(null);
+    let timer = useRef(null);
+
+    const handleInteract = (char) => {
+        if (timer.current) clearTimeout(timer.current);
+        const randomIdx = Math.floor(Math.random() * char.quotes.length);
+        setActiveQuote(char.quotes[randomIdx]);
+        setActiveCharId(char.id);
+        timer.current = setTimeout(() => {
+            setActiveQuote(null);
+            setActiveCharId(null);
+        }, 2200);
         
-        // ========================================================================
-        // Reusable Components
-        // ========================================================================
-        const Header = () => (
-            <header>
-                <h1 className="title-text text-4xl font-bold text-center py-4">
-                    Nyanpasu~ A Non Non Biyori Episode Picker
-                </h1>
-                <p className="text-center text-gray-600 mt-3 text-lg italic">
-                    Feeling the country calm? Let's pick an episode to relax with.
-                </p>
-            </header>
-        );
-        
-        const SearchBar = ({ value, onChange }) => (
-            <div className="relative flex-grow">
-                <input
-                    type="search"
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    placeholder="Search by title or tag (e.g., summer, cooking)..."
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8a9b81] transition-all"
-                    style={{ fontFamily: 'Yomogi, cursive' }}
-                />
-                {value && (
-                    <button
-                        onClick={() => onChange('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800 text-xl"
-                        aria-label="Clear search"
+        // special: if character is Renge, toggle music
+        if (char.id === 'renge') {
+            onRengeMusicToggle();
+        }
+    };
+
+    return (
+        <>
+            {STICKER_CHARS.map((char) => {
+                let positionClass = '';
+                if (char.id === 'renge') positionClass = 'sticker-renge';
+                if (char.id === 'komari') positionClass = 'sticker-komari';
+                if (char.id === 'natsumi') positionClass = 'sticker-natsumi';
+                if (char.id === 'hotaru') positionClass = 'sticker-hotaru';
+                return (
+                    <div key={char.id}
+                         className={`character-sticker ${positionClass} bg-white/80 border-2 border-amber-300 shadow-md`}
+                         onClick={() => handleInteract(char)}
+                         onMouseEnter={() => handleInteract(char)}
                     >
-                        &times;
-                    </button>
-                )}
-            </div>
-        );
-        
-        // IMPROVEMENT: More interactive picker with shuffling animation
-        function EpisodePicker({ randomEpisode, onPick, onPickSurprise, onMarkWatched, canPick, canPickAny }) {
-            const [isPicking, setIsPicking] = useState(false);
-
-            const handlePick = (pickerFn) => {
-                setIsPicking(true);
-                setRandomEpisode(null); // Clear previous selection immediately
-                setTimeout(() => {
-                    pickerFn();
-                    setIsPicking(false);
-                }, 700); // Shuffling duration
-            };
-
-            const pickUnwatched = () => handlePick(onPick);
-            const pickAny = () => handlePick(onPickSurprise);
-
-            return (
-                <section className="mt-6">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                            onClick={pickUnwatched}
-                            disabled={!canPick || isPicking}
-                            className="themed-button w-full py-3 px-4 text-lg"
-                            aria-label="Pick a random unwatched episode from the current filter"
-                        >
-                            {isPicking ? 'Finding an adventure...' : "Pick from Unwatched"}
-                        </button>
-                        <button
-                            onClick={pickAny}
-                            disabled={!canPickAny || isPicking}
-                            className="themed-button surprise w-full sm:w-auto py-3 px-5 text-lg"
-                            aria-label="Pick a completely random episode from all seasons"
-                        >
-                           ✨ Surprise Me!
-                        </button>
-                    </div>
-
-                    {isPicking && <p className="text-center mt-4 animate-pulse">Shuffling the memories...</p>}
-                    
-                    {randomEpisode && (
-                        <div className="mt-6 p-5 selected-episode-card" key={randomEpisode.id}>
-                            <h2 className="text-2xl font-semibold" style={{ color: '#8c7a6b' }}>How about this one?</h2>
-                            <p className="mt-2 text-lg">
-                                {randomEpisode.episode ? `${randomEpisode.season} Ep ${randomEpisode.episode}` : randomEpisode.title}: {randomEpisode.title}
-                                <span className={`episode-badge ${SEASON_DATA[randomEpisode.season]?.badgeClass}`}>
-                                    {SEASON_DATA[randomEpisode.season]?.name}
-                                </span>
-                            </p>
-                            <div className="mt-2 text-sm text-gray-600">
-                                Tags: {randomEpisode.tags.join(', ')}
+                        <img 
+                            src={char.imgSrc} 
+                            alt={char.name}
+                            className="sticker-avatar-img"
+                            onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23fbe5bf'/%3E%3Ctext x='50' y='67' text-anchor='middle' font-size='28'%3E${char.fallbackEmoji}%3C/text%3E%3C/svg%3E`; }}
+                        />
+                        <div className="sticker-name">{char.name}</div>
+                        {char.id === 'renge' && (
+                            <div className="music-icon-overlay">
+                                {musicPlaying ? '♪' : '⏸'}
                             </div>
-                            <button onClick={onMarkWatched} className="themed-button mt-4 py-2 px-5 text-base">
-                                Finished This Adventure!
-                            </button>
-                        </div>
-                    )}
-                </section>
-            );
-        }
-        
-        const FilterControls = ({ currentFilter, onFilterChange, episodeCounts }) => (
-            <nav className="my-4 flex flex-wrap justify-center gap-2" aria-label="Episode Season Filter">
-                {SEASONS.map(seasonKey => (
-                    <button 
-                        key={seasonKey} 
-                        onClick={() => onFilterChange(seasonKey)}
-                        className={`filter-button px-3 py-1 rounded-md text-sm relative ${currentFilter === seasonKey ? 'active' : ''}`}
-                    >
-                        {SEASON_DATA[seasonKey].name}
-                        {episodeCounts[seasonKey] !== undefined && (
-                            <span className="ml-1 text-xs opacity-70">({episodeCounts[seasonKey]})</span>
                         )}
-                    </button>
-                ))}
-            </nav>
-        );
+                        {activeQuote && activeCharId === char.id && (
+                            <div className="speech-bubble-sticker">
+                                💬 {activeQuote}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </>
+    );
+}
 
-        // IMPROVEMENT: EpisodeList now handles animation flash
-        const EpisodeList = ({ episodes, onToggle, emptyMessage, isWatched = false, toggledItemId }) => (
-            <ul className="mt-2 p-2 max-h-48 overflow-y-auto rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>
-                {episodes.length === 0 ? (
-                    <li className="list-item list-item-empty" style={{ cursor: 'default' }}>{emptyMessage}</li>
-                ) : (
-                    episodes.map(ep => (
-                        <li 
-                            key={ep.id} 
-                            className={`list-item text-sm ${isWatched ? 'watched' : ''} ${toggledItemId === ep.id ? 'flash-animation' : ''}`}
-                            onClick={() => onToggle(ep.id)}
-                            role="button"
-                            tabIndex="0"
-                            onKeyPress={(e) => e.key === 'Enter' && onToggle(ep.id)}
-                            title={`Click to mark as ${isWatched ? 'unwatched' : 'watched'}`}
-                        >
-                            <span className="flex-1 pr-2">
-                                <span className="font-bold">{ep.season} {ep.episode ? `Ep ${ep.episode}` : ''}</span>: {ep.title}
-                            </span>
-                            <span className="text-lg transition-transform duration-200 group-hover:scale-125">
-                                {isWatched ? '↩️' : '✅'}
-                            </span>
-                        </li>
-                    ))
-                )}
-            </ul>
-        );
+// ---------- EPISODE LIST component ----------
+function EpisodeList({ episodes, onToggle, isWatchedList }) {
+    if (!episodes.length) return <div className="text-center py-6 text-stone-500 text-sm italic">🍂 no episodes... wander outside?</div>;
+    return (
+        <div className="ep-list-scroll">
+            {episodes.map(ep => (
+                <div key={ep.id} className={`ep-item flex items-center gap-3 px-2 py-2 rounded-xl cursor-pointer ${isWatchedList ? 'watched-ep' : ''}`} onClick={() => onToggle(ep.id)}>
+                    <span className="text-[11px] font-mono bg-amber-100 px-2 py-0.5 rounded-full text-stone-700 min-w-[72px]">{epDisplay(ep)}</span>
+                    <span className="flex-1 text-sm font-medium text-stone-800">{ep.title}</span>
+                    <span className="text-[10px] bg-white/70 px-2 rounded-full">{SEASON_META[ep.season]?.emoji} {SEASON_META[ep.season]?.short}</span>
+                    <span className="text-base">{isWatchedList ? '✓' : '○'}</span>
+                </div>
+            ))}
+        </div>
+    );
+}
 
-        // IMPROVEMENT: New container component for better structure
-        const EpisodeListContainer = ({ title, children }) => (
-            <div className="flex flex-col">
-                <h3 className="text-2xl font-semibold" style={{ color: '#8a9b81' }}>{title}</h3>
-                {children}
+// ---------- STATS PANEL ----------
+function StatsPanel({ stats, onClose }) {
+    return (
+        <div className="bg-[#fff7ea] border-2 border-dashed border-amber-400 rounded-2xl p-4 mt-4 shadow-lg relative">
+            <button onClick={onClose} className="absolute top-2 right-3 text-stone-500 text-lg hover:text-stone-800">✕</button>
+            <div className="flex gap-5 items-center flex-wrap mb-3">
+                <div><span className="text-3xl font-bold text-emerald-800">{stats.pct.toFixed(0)}%</span><span className="text-sm ml-1">watched</span></div>
+                <div><span className="text-2xl font-bold">{stats.watched}</span><span className="text-sm"> / {stats.total} episodes</span></div>
             </div>
-        );
-
-        const ProgressBar = ({ watchedCount, totalCount }) => { /* ... (same component) ... */
-             const percentage = totalCount > 0 ? (watchedCount / totalCount) * 100 : 0;
-            const milestones = [25, 50, 75, 100];
-            const reachedMilestone = milestones.find(m => percentage >= m && percentage < m + 5);
-
-            return (
-                <div className="my-6">
-                    <div className="progress-bar-container">
-                        <div className="progress-bar-fill" style={{ width: `${percentage}%` }}>
-                            {watchedCount} / {totalCount} Watched
-                        </div>
-                    </div>
-                    {reachedMilestone && (
-                        <p className="text-center mt-2 text-sm text-green-600 animate-pulse">
-                            🎉 Congratulations! You've watched {reachedMilestone}% of all episodes!
-                        </p>
-                    )}
+            {Object.entries(stats.bySeasons).map(([s, d]) => (
+                <div key={s} className="flex items-center gap-3 text-sm my-2">
+                    <span className="w-20">{SEASON_META[s]?.emoji} {SEASON_META[s]?.label}</span>
+                    <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden"><div className="progress-fill-hand" style={{ width: `${d.pct}%` }} /></div>
+                    <span className="text-xs w-12">{d.watched}/{d.total}</span>
                 </div>
-            );
-        };
-        const StatisticsPanel = ({ stats, onClose }) => { /* ... (same component) ... */ 
-            return (
-                <div className="stats-card">
-                    <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-xl font-semibold">Your Watching Statistics</h3>
-                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div>
-                            <p className="text-sm text-gray-600">Total Progress</p>
-                            <p className="text-2xl font-bold">{stats.percentage.toFixed(1)}%</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Episodes Watched</p>
-                            <p className="text-2xl font-bold">{stats.watched}/{stats.total}</p>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <h4 className="font-semibold text-sm">Progress by Season:</h4>
-                        {Object.entries(stats.bySeasons).map(([season, data]) => (
-                            <div key={season} className="flex items-center justify-between text-sm">
-                                <span className={`episode-badge ${SEASON_DATA[season]?.badgeClass}`}>{SEASON_DATA[season]?.name}</span>
-                                <div className="flex-1 mx-3">
-                                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
-                                            style={{ width: `${data.percentage}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <span className="text-xs">{data.watched}/{data.total}</span>
-                            </div>
-                        ))}
-                    </div>
-                    
-                    {stats.recentHistory.length > 0 && (
-                        <div className="mt-4 pt-3 border-t border-gray-200">
-                            <h4 className="font-semibold text-sm mb-2">Recent Activity:</h4>
-                            <div className="space-y-1 text-xs text-gray-600">
-                                {stats.recentHistory.map((item, index) => {
-                                    const episode = EPISODES.find(ep => ep.id === item.episodeId);
-                                    const date = new Date(item.timestamp);
-                                    return (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <span>{item.action === 'marked' ? '✅' : item.action === 'unmarked' ? '↩️' : '🎲'}</span>
-                                            <span className="truncate">{episode?.title || 'Unknown'} - {date.toLocaleDateString()}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-        const CharacterDecorations = () => { /* ... (same component) ... */ 
-            const [hoveredCharacter, setHoveredCharacter] = useState(null);
-            
-            return (
-                <>
-                    <div className="relative">
-                        <img src="https://i.imgur.com/8x8YfJ5.png" alt="Renge Miyauchi" className="character-deco transition-transform duration-300 hover:scale-110" style={{ height: '160px', bottom: '-45px', left: '-50px', transform: `rotate(-8deg) ${hoveredCharacter === 'renge' ? 'scale(1.1)' : ''}` }} onMouseEnter={() => setHoveredCharacter('renge')} onMouseLeave={() => setHoveredCharacter(null)} />
-                        {hoveredCharacter === 'renge' && <div className="tooltip show" style={{ bottom: '120px', left: '-30px' }}>Nyanpasu~!</div>}
-                    </div>
-                    <div className="relative">
-                        <img src="https://i.imgur.com/uT6ujS8.png" alt="Hotaru Ichijo" className="character-deco transition-transform duration-300 hover:scale-110" style={{ height: '140px', top: '-25px', right: '-45px', transform: `rotate(5deg) ${hoveredCharacter === 'hotaru' ? 'scale(1.1)' : ''}` }} onMouseEnter={() => setHoveredCharacter('hotaru')} onMouseLeave={() => setHoveredCharacter(null)} />
-                        {hoveredCharacter === 'hotaru' && <div className="tooltip show" style={{ top: '115px', right: '-20px' }}>Senpai!</div>}
-                    </div>
-                    <div className="relative">
-                        <img src="https://i.imgur.com/W2t22a2.png" alt="Komari Koshigaya" className="character-deco transition-transform duration-300 hover:scale-110" style={{ height: '110px', bottom: '-25px', right: '-30px', transform: `rotate(10deg) ${hoveredCharacter === 'komari' ? 'scale(1.1)' : ''}` }} onMouseEnter={() => setHoveredCharacter('komari')} onMouseLeave={() => setHoveredCharacter(null)} />
-                        {hoveredCharacter === 'komari' && <div className="tooltip show" style={{ bottom: '85px', right: '-10px' }}>Koma-chan!</div>}
-                    </div>
-                </>
-            );
-        };
-        
-        // ========================================================================
-        // Main App Component
-        // ========================================================================
-        function App() {
-            const {
-                watchedEpisodes, unwatchedEpisodes,
-                filteredWatched, filteredUnwatched,
-                totalEpisodeCount,
-                randomEpisode, pickRandomEpisode,
-                markAsWatched, toggleWatchedStatus, resetProgress,
-                filter, setFilter, searchQuery, setSearchQuery,
-                showStats, setShowStats, stats,
-                toggledItemId,
-            } = useEpisodeTracker();
-            
-            const episodeCounts = useMemo(() => {
-                const counts = { All: EPISODES.length };
-                SEASONS.slice(1).forEach(season => {
-                    counts[season] = EPISODES.filter(ep => ep.season === season).length;
-                });
-                return counts;
-            }, []);
+            ))}
+            {stats.recentHistory.length > 0 && <div className="mt-3 pt-2 border-t border-amber-200 text-[10px] text-stone-500">📖 recent: {stats.recentHistory.slice(0,3).map(h => h.action).join(' · ')}</div>}
+        </div>
+    );
+}
 
-            return (
-                <main className="max-w-3xl w-full content-panel">
-                    <CharacterDecorations />
-                    <Header />
+// ---------- MAIN APP ----------
+function App() {
+    const loadWatched = () => { try { return new Set(JSON.parse(localStorage.getItem('nnb_watched')) || []); } catch(e) { return new Set(); } };
+    const loadHistory = () => { try { return JSON.parse(localStorage.getItem('nnb_history')) || []; } catch(e) { return []; } };
+    const [watchedIds, setWatchedIds] = useState(loadWatched);
+    const [history, setHistory] = useState(loadHistory);
+    const [filterSeason, setFilterSeason] = useState('All');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [pickedEpisode, setPickedEpisode] = useState(null);
+    const [isPicking, setIsPicking] = useState(false);
+    const [showStats, setShowStats] = useState(false);
+    const { isPlaying, togglePlayPause, startMusic, resumeIfNeeded } = useBackgroundMusic();
 
-                    <div className="mt-6 flex flex-col sm:flex-row gap-2 items-center">
-                        <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                        <button
-                            onClick={() => setShowStats(!showStats)}
-                            className="themed-button px-4 py-2 text-sm whitespace-nowrap w-full sm:w-auto"
-                        >
-                            📊 Stats
-                        </button>
-                    </div>
-
-                    {showStats && <StatisticsPanel stats={stats} onClose={() => setShowStats(false)} />}
-
-                    <EpisodePicker
-                        randomEpisode={randomEpisode}
-                        onPick={() => pickRandomEpisode(filteredUnwatched)}
-                        onPickSurprise={() => pickRandomEpisode(EPISODES)}
-                        onMarkWatched={markAsWatched}
-                        canPick={filteredUnwatched.length > 0}
-                        canPickAny={EPISODES.length > 0}
-                    />
-                    
-                    <ProgressBar watchedCount={stats.watched} totalCount={totalEpisodeCount} />
-
-                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                        <EpisodeListContainer title={`Adventures We've Had (${filteredWatched.length})`}>
-                            <EpisodeList
-                                episodes={filteredWatched}
-                                onToggle={toggleWatchedStatus}
-                                emptyMessage="No adventures yet in this category!"
-                                isWatched={true}
-                                toggledItemId={toggledItemId}
-                            />
-                        </EpisodeListContainer>
-                        
-                        <EpisodeListContainer title={`Adventures to Come (${filteredUnwatched.length})`}>
-                            <FilterControls 
-                                currentFilter={filter} 
-                                onFilterChange={setFilter}
-                                episodeCounts={episodeCounts}
-                            />
-                            <EpisodeList
-                                episodes={filteredUnwatched}
-                                onToggle={toggleWatchedStatus}
-                                emptyMessage="All done! Maybe try a new filter?"
-                                isWatched={false}
-                                toggledItemId={toggledItemId}
-                            />
-                        </EpisodeListContainer>
-                    </div>
-
-                    <div className="mt-8 space-y-3">
-                        <button onClick={resetProgress} className="themed-button reset w-full py-3 px-4 text-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V4a1 1 0 011-1zm10 8a1 1 0 011-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101z" clipRule="evenodd" /></svg>
-                            Start a New School Year (Reset)
-                        </button>
-                        
-                        <div className="text-center text-xs text-gray-500">
-                            <p>Made with 💚 for Non Non Biyori fans</p>
-                            <p className="mt-1">Remember: Every day in the countryside is special!</p>
-                        </div>
-                    </div>
-                </main>
-            );
+    // sync music status display
+    useEffect(() => {
+        const statusDiv = document.getElementById('musicStatusDisplay');
+        if (statusDiv) {
+            statusDiv.innerHTML = isPlaying ? '♪ bgm playing ♪ (click Renge to pause)' : '⏸ bgm paused (click Renge to play)';
         }
+    }, [isPlaying]);
 
-        ReactDOM.render(<App />, document.getElementById('root'));
-    </script>
+    // attempt to start music on first user click anywhere? But we will tie only to Renge. To make it "running by default" possible, we call startMusic after user clicks Renge.
+    // We'll also try to resume if needed.
+    const handleRengeMusicToggle = () => {
+        // if audio not yet started (muted or not playing), startMusic will unmute and play
+        // otherwise togglePlayPause will pause/resume
+        if (!isPlaying && !window._musicStarted) {
+            startMusic();
+            window._musicStarted = true;
+        } else {
+            togglePlayPause();
+        }
+    };
+
+    useEffect(() => {
+        localStorage.setItem('nnb_watched', JSON.stringify([...watchedIds]));
+    }, [watchedIds]);
+    useEffect(() => {
+        localStorage.setItem('nnb_history', JSON.stringify(history.slice(0, 50)));
+    }, [history]);
+
+    const addHistory = (action, id) => setHistory(prev => [{ id, action, ts: Date.now() }, ...prev].slice(0, 40));
+
+    const toggleWatched = useCallback((id) => {
+        setWatchedIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) { newSet.delete(id); addHistory('unmarked', id); }
+            else { newSet.add(id); addHistory('marked', id); }
+            return newSet;
+        });
+        if (pickedEpisode?.id === id) setPickedEpisode(null);
+    }, [pickedEpisode]);
+
+    const { watched, unwatched } = useMemo(() => {
+        let w = [], uw = [];
+        EPISODES.forEach(ep => (watchedIds.has(ep.id) ? w : uw).push(ep));
+        return { watched: w, unwatched: uw };
+    }, [watchedIds]);
+
+    const filterList = (list) => {
+        let filtered = filterSeason === 'All' ? list : list.filter(ep => ep.season === filterSeason);
+        if (searchTerm.trim()) {
+            const q = searchTerm.toLowerCase();
+            filtered = filtered.filter(ep => ep.title.toLowerCase().includes(q) || ep.tags.some(t => t.includes(q)));
+        }
+        return filtered;
+    };
+    const filteredUnwatched = useMemo(() => filterList(unwatched), [unwatched, filterSeason, searchTerm]);
+    const filteredWatched = useMemo(() => filterList(watched), [watched, filterSeason, searchTerm]);
+
+    const pickEpisode = useCallback((pool) => {
+        if (!pool.length) return;
+        setIsPicking(true);
+        setPickedEpisode(null);
+        setTimeout(() => {
+            const randomEp = pool[Math.floor(Math.random() * pool.length)];
+            setPickedEpisode(randomEp);
+            addHistory('picked', randomEp.id);
+            setIsPicking(false);
+        }, 500);
+    }, []);
+
+    const finishPicked = () => { if(pickedEpisode) { toggleWatched(pickedEpisode.id); setPickedEpisode(null); } };
+    const resetAll = () => { if(confirm("🌸 Restart your diary? All progress will fade like morning mist.")) { setWatchedIds(new Set()); setHistory([]); setPickedEpisode(null); setFilterSeason('All'); setSearchTerm(''); } };
+
+    const stats = useMemo(() => {
+        const bySeasons = {};
+        Object.keys(SEASON_META).forEach(s => {
+            const total = EPISODES.filter(ep => ep.season === s).length;
+            const w = watched.filter(ep => ep.season === s).length;
+            bySeasons[s] = { total, watched: w, pct: total ? (w/total)*100 : 0 };
+        });
+        return { total: EPISODES.length, watched: watched.length, pct: (watched.length/EPISODES.length)*100, bySeasons, recentHistory: history.slice(0,6) };
+    }, [watched, history]);
+
+    const epCountMap = useMemo(() => {
+        let map = { All: EPISODES.length };
+        Object.keys(SEASON_META).forEach(s => map[s] = EPISODES.filter(ep => ep.season === s).length);
+        return map;
+    }, []);
+
+    const milestone = [25, 50, 75, 100].find(m => stats.pct >= m && stats.pct < m+4.5);
+
+    return (
+        <div className="main-board">
+            <FloatingCharacters onRengeMusicToggle={handleRengeMusicToggle} musicPlaying={isPlaying} />
+
+            {/* header diary */}
+            <div className="flex justify-center -mb-3"><div className="tape-strip w-36 h-5"></div></div>
+            <div className="bg-[#fffef5] border-2 border-amber-200 rounded-3xl shadow-2xl p-5 md:p-7 relative transform rotate-[0.2deg]">
+                <div className="pin pin-left"></div><div className="pin pin-right"></div>
+                <div className="stamp-circle absolute top-3 right-3 w-16 h-16 flex flex-col items-center justify-center text-[10px] font-bold text-amber-800 border-2 border-amber-600 rounded-full bg-amber-50/70"><span>🐾</span>NYANPASU</div>
+                <h1 className="font-['Yuji_Syuku'] text-4xl md:text-5xl text-stone-800">のんのんびより</h1>
+                <p className="text-stone-500 text-sm mt-1 flex items-center gap-2">🌾 Episode Diary · Asahigaoka Village 🌾</p>
+
+                <div className="flex flex-wrap gap-3 items-center mt-5">
+                    <div className="relative flex-1">
+                        <input type="text" placeholder="🔎 search by title or tag (rice, summer, ...)" className="w-full bg-amber-50/60 border border-amber-300 rounded-full py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/>
+                        {searchTerm && <button onClick={()=>setSearchTerm('')} className="absolute right-3 top-2 text-stone-400">✕</button>}
+                    </div>
+                    <button onClick={()=>setShowStats(!showStats)} className="bg-white/80 border border-amber-300 px-4 py-2 rounded-full text-sm shadow-sm hover:bg-amber-50">📖 {showStats ? 'Hide Diary' : 'Show Stats'}</button>
+                </div>
+                {showStats && <StatsPanel stats={stats} onClose={()=>setShowStats(false)} />}
+            </div>
+
+            {/* picker card */}
+            <div className="mt-7 bg-[#f6f9ec] border-l-8 border-green-600 rounded-2xl shadow-lg p-5 relative">
+                <div className="absolute -top-2 left-6 w-16 h-3 bg-[#eedfa8] rounded-full opacity-80"></div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {SEASON_FILTERS.map(s => (
+                        <button key={s} onClick={()=>setFilterSeason(s)} className={`text-xs md:text-sm px-4 py-1.5 rounded-full transition-all ${filterSeason === s ? 'bg-green-700 text-white shadow-md' : 'bg-white/80 text-stone-700 border border-amber-300 hover:bg-amber-100'}`}>
+                            {s === 'All' ? '🍃 All' : SEASON_META[s]?.label} <span className="opacity-70 text-[10px]">({epCountMap[s]})</span>
+                        </button>
+                    ))}
+                </div>
+                <div className="flex flex-wrap gap-4 items-center">
+                    <button disabled={!filteredUnwatched.length || isPicking} onClick={()=>pickEpisode(filteredUnwatched)} className="bg-green-800 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg disabled:opacity-50 transition flex gap-2 items-center btn-hand">
+                        {isPicking ? <span className="picking-spin">🌀</span> : '🌾'} {isPicking ? 'Finding episode...' : 'Pick Unwatched'}
+                    </button>
+                    <button disabled={isPicking} onClick={()=>pickEpisode(EPISODES)} className="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-6 rounded-full shadow-md flex gap-2 items-center btn-hand">✨ Surprise Me ✨</button>
+                </div>
+
+                {pickedEpisode && (
+                    <div className="mt-5 bg-white rounded-2xl border border-amber-200 p-4 shadow-inner relative animate-fadeIn">
+                        <div className="absolute -top-3 left-6 w-12 h-3 bg-[#e7dbbc] rounded-full opacity-70"></div>
+                        <div className="text-xs text-amber-700 tracking-wider">🎋 TODAY'S EPISODE</div>
+                        <div className="font-['Yuji_Syuku'] text-xl md:text-2xl text-stone-800">{pickedEpisode.title}</div>
+                        <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                            <span className="bg-stone-100 px-3 py-0.5 rounded-full">{epDisplay(pickedEpisode)}</span>
+                            <span className="bg-amber-100 px-3 py-0.5 rounded-full">{SEASON_META[pickedEpisode.season]?.emoji} {SEASON_META[pickedEpisode.season]?.label}</span>
+                            {pickedEpisode.tags.map(t => <span key={t} className="bg-green-50 px-2 py-0.5 rounded-full text-stone-600">#{t}</span>)}
+                        </div>
+                        <div className="flex gap-3 mt-4">
+                            <button onClick={finishPicked} className="bg-amber-800 hover:bg-amber-700 text-white px-5 py-1.5 rounded-full text-sm shadow-md btn-hand">✓ Watched it!</button>
+                            <button onClick={()=>pickEpisode(filteredUnwatched)} disabled={!filteredUnwatched.length} className="border border-stone-300 px-5 py-1.5 rounded-full text-sm">⟳ Pick again</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* progress bar */}
+            <div className="mt-6 bg-[#ecf3e5] rounded-2xl p-4 border-r-8 border-sky-400 shadow">
+                <div className="flex justify-between text-sm font-medium"><span>🌱 Journey progress</span><span>{stats.watched}/{stats.total} episodes</span></div>
+                <div className="w-full h-4 bg-stone-200 rounded-full mt-2 overflow-hidden"><div className="progress-fill-hand" style={{width: `${stats.pct}%`}}/></div>
+                {milestone && <div className="mt-2 text-xs text-emerald-700 bg-white/60 rounded-full px-3 py-1 inline-block">{milestone === 100 ? '🏆 Full completion! Nyanpasu~ 🏆' : `✨ ${milestone}% — the village feels like home`}</div>}
+            </div>
+
+            {/* episode lists */}
+            <div className="grid md:grid-cols-2 gap-5 mt-6">
+                <div className="bg-white/80 rounded-2xl shadow p-3 border border-amber-100">
+                    <h3 className="font-bold text-stone-700 mb-2 pl-2 border-l-4 border-green-500">🍃 Unwatched ({filteredUnwatched.length})</h3>
+                    <EpisodeList episodes={filteredUnwatched} onToggle={toggleWatched} isWatchedList={false} />
+                </div>
+                <div className="bg-white/80 rounded-2xl shadow p-3 border border-amber-100">
+                    <h3 className="font-bold text-stone-700 mb-2 pl-2 border-l-4 border-amber-500">📖 Watched ({filteredWatched.length})</h3>
+                    <EpisodeList episodes={filteredWatched} onToggle={toggleWatched} isWatchedList={true} />
+                </div>
+            </div>
+
+            <div className="mt-5 flex justify-center">
+                <button onClick={resetAll} className="bg-stone-200 hover:bg-stone-300 text-stone-700 px-5 py-2 rounded-full text-sm shadow flex gap-1 items-center btn-hand">↺ Reset Diary</button>
+            </div>
+            <div className="text-center text-[11px] text-stone-400 mt-6">✿  every day in asahigaoka is a little treasure · nyanpasu  ✿</div>
+        </div>
+    );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
 </body>
 </html>
